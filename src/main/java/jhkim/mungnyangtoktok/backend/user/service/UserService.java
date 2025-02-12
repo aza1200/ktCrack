@@ -3,6 +3,7 @@ package jhkim.mungnyangtoktok.backend.user.service;
 import jakarta.transaction.Transactional;
 import jhkim.mungnyangtoktok.backend.user.dto.JoinRequest;
 import jhkim.mungnyangtoktok.backend.user.dto.LoginRequest;
+import jhkim.mungnyangtoktok.backend.user.dto.UserResponse;
 import jhkim.mungnyangtoktok.backend.user.entity.User;
 import jhkim.mungnyangtoktok.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,96 +18,46 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    // Spring Security를 사용한 로그인 구현 시 사용
-    // private final BCryptPasswordEncoder encoder;
+    public UserResponse join(JoinRequest req) {
 
-    /**
-     * loginId 중복 체크
-     * 회원가입 기능 구현 시 사용
-     * 중복되면 true return
-     */
-    public boolean checkLoginIdDuplicate(String loginId) {
-        return userRepository.existsByLoginId(loginId);
-    }
-
-    /**
-     * nickname 중복 체크
-     * 회원가입 기능 구현 시 사용
-     * 중복되면 true return
-     */
-    public boolean checkNicknameDuplicate(String nickname) {
-        return userRepository.existsByNickname(nickname);
-    }
-
-    /**
-     * 회원가입 기능 1
-     * 화면에서 JoinRequest(loginId, password, nickname)을 입력받아 User로 변환 후 저장
-     * loginId, nickname 중복 체크는 Controller에서 진행 => 에러 메세지 출력을 위해
-     */
-    public void join(JoinRequest req) {
-        userRepository.save(req.toEntity());
-    }
-
-//    /**
-//     * 회원가입 기능 2
-//     * 화면에서 JoinRequest(loginId, password, nickname)을 입력받아 User로 변환 후 저장
-//     * 회원가입 1과는 달리 비밀번호를 암호화해서 저장
-//     * loginId, nickname 중복 체크는 Controller에서 진행 => 에러 메세지 출력을 위해
-//     */
-//    public void join2(JoinRequest req) {
-//        userRepository.save(req.toEntity(encoder.encode(req.getPassword())));
-//    }
-
-    /**
-     *  로그인 기능
-     *  화면에서 LoginRequest(loginId, password)을 입력받아 loginId와 password가 일치하면 User return
-     *  loginId가 존재하지 않거나 password가 일치하지 않으면 null return
-     */
-    public User login(LoginRequest req) {
-        Optional<User> optionalUser = userRepository.findByLoginId(req.getLoginId());
-
-        // loginId와 일치하는 User가 없으면 null return
-        if(optionalUser.isEmpty()) {
-            return null;
+        if (userRepository.existsByLoginId(req.getLoginId())) {
+            throw new IllegalArgumentException("이미 사용 중인 로그인 ID입니다.");
         }
 
-        User user = optionalUser.get();
-
-        // 찾아온 User의 password와 입력된 password가 다르면 null return
-        if(!user.getPassword().equals(req.getPassword())) {
-            return null;
+        // 2. 닉네임 중복 체크
+        if (userRepository.existsByNickname(req.getNickname())) {
+            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
         }
 
-        return user;
+        User savedUser = userRepository.save(req.toEntity());
+
+        return new UserResponse(
+                savedUser.getId(),
+                savedUser.getLoginId(),
+                savedUser.getNickname(),
+                savedUser.isUser(),
+                false,
+                savedUser.isPetsitter()
+        );
     }
 
-//    /**
-//     * userId(Long)를 입력받아 User을 return 해주는 기능
-//     * 인증, 인가 시 사용
-//     * userId가 null이거나(로그인 X) userId로 찾아온 User가 없으면 null return
-//     * userId로 찾아온 User가 존재하면 User return
-//     */
-//    public User getLoginUserById(Long userId) {
-//        if(userId == null) return null;
-//
-//        Optional<User> optionalUser = userRepository.findById(userId);
-//        if(optionalUser.isEmpty()) return null;
-//
-//        return optionalUser.get();
-//    }
+    public UserResponse login(LoginRequest req) {
+        Optional<User> user = userRepository.findByLoginId(req.getLoginId());
+        if (user.isEmpty()) {
+            throw new IllegalArgumentException("존재하지 않는 로그인 ID입니다.");
+        }
 
-//    /**
-//     * loginId(String)를 입력받아 User을 return 해주는 기능
-//     * 인증, 인가 시 사용
-//     * loginId가 null이거나(로그인 X) userId로 찾아온 User가 없으면 null return
-//     * loginId로 찾아온 User가 존재하면 User return
-//     */
-//    public User getLoginUserByLoginId(String loginId) {
-//        if(loginId == null) return null;
-//
-//        Optional<User> optionalUser = userRepository.findByLoginId(loginId);
-//        if(optionalUser.isEmpty()) return null;
-//
-//        return optionalUser.get();
-//    }
+        if (!user.get().getPassword().equals(req.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+
+        return new UserResponse(
+                user.get().getId(),
+                user.get().getLoginId(),
+                user.get().getNickname(),
+                user.get().isUser(),
+                user.get().isAdmin(),
+                user.get().isPetsitter()
+        );
+    }
 }
