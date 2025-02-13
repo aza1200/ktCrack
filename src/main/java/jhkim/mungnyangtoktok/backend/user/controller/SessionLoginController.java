@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
+
 public class SessionLoginController {
 
     private final UserService userService;
@@ -30,7 +31,7 @@ public class SessionLoginController {
     // 로그인 (세션 기반)
     @PostMapping("/login")
     public ResponseEntity<UserResponse> signIn(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
-        UserResponse userResponse = userService.login(loginRequest);
+        UserResponse userResponse = userService.login(loginRequest, request);
 
         // 로그인 성공 시 세션 저장
         HttpSession session = request.getSession();
