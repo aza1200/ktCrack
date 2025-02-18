@@ -6,6 +6,9 @@ import jhkim.mungnyangtoktok.backend.user.entity.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @Getter
 @Setter
@@ -28,13 +31,6 @@ public class JoinRequest {
     @NotNull(message = "user, petsitter 중 하나를 선택해주세요.")
     private Boolean isPetsitter;
 
-    public void validateUserType() {
-        if (!isUser && !isPetsitter) {
-            throw new IllegalArgumentException("user, petsitter 중 하나를 반드시 선택해야 합니다.");
-        }
-    }
-
-    // 비밀번호 암호화 X
     public User toEntity() {
         return User.builder()
                 .loginId(this.loginId)
@@ -44,15 +40,4 @@ public class JoinRequest {
                 .isPetsitter(this.isPetsitter)
                 .build();
     }
-
-//    // 비밀번호 암호화
-//    public User toEntity(String encodedPassword) {
-//        return User.builder()
-//                .loginId(this.loginId)
-//                .password(encodedPassword)
-//                .nickname(this.nickname)
-//                .isUser(this.isUser)
-//                .isPetsitter(this.isPetsitter)
-//                .build();
-//    }
 }

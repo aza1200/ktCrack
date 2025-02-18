@@ -9,13 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
-
-    private Long id;
-    private String loginId;
-    private String nickName;
-
-    private boolean isUser;
-    private boolean isAdmin;
-    private boolean isPetsitter;
+public class LoginResponse {
+    private String sessionToken; // 세션 토큰 (ex: JWT 또는 세션 ID)
 }

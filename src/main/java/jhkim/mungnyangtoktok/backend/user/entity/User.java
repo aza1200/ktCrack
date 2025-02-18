@@ -26,6 +26,14 @@ public class User {
     private boolean isPetsitter;
     private boolean isUser;
 
+
+    @Column(name = "profile_image", columnDefinition = "bytea")
+    private byte[] profileImage;
+
+    public void setProfileImage(byte[] profileImage) {
+        this.profileImage = profileImage;
+    }
+
     public void setAdmin(boolean isAdmin) {
         if (isAdmin) {
             this.isPetsitter = false;
@@ -47,4 +55,10 @@ public class User {
         }
         this.isUser = isUser;
     }
+
+    public void updateNickname(String newNickname) {
+        this.nickname = newNickname;
+    }
+
+
 }
